@@ -13,20 +13,19 @@ zig fetch --save https://github.com/zigster64/dotenv.zig/archive/refs/tags/v0.1.
 Then add to your build.zig
 
 ```zig
-    const dep_opts = .{
-        .target = target,
-        .optimize = optimize,
-    };
-
-    const zts = b.dependency("dotenv", dep_opts);
+    const zts = b.dependency("dotenv", .{ dependency options here );
     exe.root_module.addImport("dotenv", dotenv.module("dotenv"));
 ```
 
-## Microlibray Alert
+## 🤮 Microlibray Alert 🤮
 
-This is a MicroLibrary, the code is trivial enough.
+This is a MicroLibrary, the code is trivial enough
 
-Consider just copypasting the file `dotenv.zig` into your project instead of adding a microdependency. Up to you.
+Consider just copypasting the file `dotenv.zig` into your project instead of adding yet another microdependency
+
+Lets not turn Zig into npm
+
+Up to you
 
 ## Usage
 
