@@ -8,7 +8,10 @@ map: EnvMap = EnvMap{},
 deleted: EnvMap = EnvMap{},
 
 pub fn init(allocator: Allocator) !Self {
-    dotenv = Self{};
+    _ = allocator; // autofix
+    var dotenv = Self{};
+    _ = dotenv; // autofix
 
     // read the .env file if it exists, and add each line to the map
+
 }
