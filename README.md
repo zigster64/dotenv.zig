@@ -7,7 +7,7 @@ Load ENV vars from .env files on boot
 ## Install
 
 ```
-zig fetch --save https://github.com/zigster64/dotenv.zig#master
+zig fetch --save git+https://github.com/zigster64/dotenv.zig#main
 ```
 
 Then add to your build.zig
