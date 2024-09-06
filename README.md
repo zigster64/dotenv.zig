@@ -23,7 +23,7 @@ This is a MicroLibrary, the code is trivial enough
 
 Consider just copypasting the file `dotenv.zig` into your project instead of adding yet another microdependency
 
-Lets not turn Zig into npm
+Its only about 20 lines of code
 
 Up to you
 
@@ -36,17 +36,11 @@ pub fn main() !void {
     // create an allocator
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    defer {
-        if (gpa.deinit() != .ok) {
-            logz.warn().boolean("memory_leak", true).src(@src()).log();
-        }
-    }
+    defer gpa.deinit();
 
     // init the dotenv object - this will read the .env file at runtime
     const env = try dotenv.init(allocator);
     defer env.deinit();
-
-    std.posix.getenv("DATABASE_NAME") // gets from ENV - lets say its value is "ABC"
 
     // gen "Env" vars
     var database_host = env.get("DATABASE_HOST") orelse "localhost";
@@ -54,33 +48,19 @@ pub fn main() !void {
 
     ... do stuff
 
-    // change the value of "Env" vars
-    try env.set("DATABASE_HOST", "postgres.local");
-
-    // remove the value from the "Env" vars
-    try env.delete("DATABASE_NAME");
-
-    env.get("DATABASE_NAME"); // will return null, even if its in the original ENV vars
-    std.posix.getenv("DATABASE_NAME"); // will return the original ENV var, so it = "ABC"
+    // change the value of the DATABASE_HOST
+    try env.put("DATABASE_HOST", "postgres.local");
 }
 ```
 
 ## How it works
 
-On boot, loads the `.env` file into an internal hashmap of (key:string, value:string)
+On boot, loads the `.env` file, and parses each line
 
-When the user calls `env.get(key)` it will :
 
-- return the value from the hashmap, if found
-- else, fallback to using posix.getenv()
-- if neither found, return null
+If the line contains an '=' char, then it splits the line on that first '=' and then 
+adds KEY : VALUE to the environment.
 
-If a value is found, it will be returned as a null terminate string (to be compat with posix.getenv)
-
-When the user calls `env.set(key,value)` - it clones the value passed, and adds it to the hashmap.
-
-Because its cloning it, you can use temporary / stack variables with no problems.
-
-When the user calls `env.delete(key)` it removes it from the hashmap, but also stores the fact its deleted in a 'deleted' hashmap 
+Uses `std.process.EnvMap` - which is an in-memory clone of the initial ENV
 
 
