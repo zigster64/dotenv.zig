@@ -39,7 +39,7 @@ pub fn main() !void {
     defer gpa.deinit();
 
     // init the dotenv object - this will read the .env file at runtime
-    const env = try dotenv.init(allocator);
+    const env = try dotenv.init(allocator, ".env");
     defer env.deinit();
 
     // gen "Env" vars
