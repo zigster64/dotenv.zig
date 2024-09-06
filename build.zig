@@ -4,10 +4,10 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const dotenv_module = b.addModule("dotenv", .{
+    // define the module so others can import it
+    _ = b.addModule("dotenv", .{
         .root_source_file = b.path("src/dotenv.zig"),
     });
-    _ = dotenv_module; // autofix
 
     {
         const tests = b.addTest(.{

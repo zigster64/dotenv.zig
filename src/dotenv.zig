@@ -1,17 +1,63 @@
 const std = @import("std");
 
-const Allocator = std.Allocator;
-const EnvMap = std.AutoHashMap([]const u8, []const u8);
+const testing = std.testing;
+const Allocator = std.mem.Allocator;
 const Self = @This();
 
-map: EnvMap = EnvMap{},
-deleted: EnvMap = EnvMap{},
+pub const Options = struct {
+    filename: []const u8 = ".env",
+};
 
-pub fn init(allocator: Allocator) !Self {
-    _ = allocator; // autofix
-    var dotenv = Self{};
-    _ = dotenv; // autofix
+map: std.process.EnvMap = undefined,
 
-    // read the .env file if it exists, and add each line to the map
+pub fn init(allocator: Allocator, options: Options) !Self {
+    var map = try std.process.getEnvMap(allocator);
 
+    var file = std.fs.cwd().openFile(options.filename, .{}) catch {
+        return .{ .map = map };
+    };
+
+    defer file.close();
+    var buf_reader = std.io.bufferedReader(file.reader());
+    var in_stream = buf_reader.reader();
+    var buf: [1024]u8 = undefined;
+    while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+        std.debug.print("Line: {s}\n", .{line});
+        // split into KEY and Value
+        if (std.mem.indexOf(u8, line, "=")) |index| {
+            const key = line[0..index];
+            const value = line[index + 1 ..];
+            try map.put(key, value);
+        }
+    }
+    return .{
+        .map = map,
+    };
+}
+
+pub fn deinit(self: *Self) void {
+    self.map.deinit();
+}
+
+pub fn get(self: Self, key: []const u8) ?[]const u8 {
+    return self.map.get(key);
+}
+
+pub fn put(self: *Self, key: []const u8, value: []const u8) !void {
+    return self.map.put(key, value);
+}
+
+test "load an env file" {
+    var basic_env = try Self.init(testing.allocator, .{ .filename = "" });
+    defer basic_env.deinit();
+    const basic_env_count = basic_env.map.count();
+
+    var expanded_env = try Self.init(testing.allocator, .{ .filename = ".env" });
+    defer expanded_env.deinit();
+    const expanded_env_count = expanded_env.map.count();
+
+    try testing.expectEqual(basic_env_count + 3, expanded_env_count);
+    try testing.expectEqualStrings("1", expanded_env.get("VALUE1").?);
+    try testing.expectEqualStrings("2", expanded_env.get("VALUE2").?);
+    try testing.expectEqualStrings("3", expanded_env.get("VALUE3").?);
 }
