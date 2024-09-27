@@ -19,6 +19,10 @@ pub fn init(allocator: Allocator, filename: ?[]const u8) !Self {
         var in_stream = buf_reader.reader();
         var buf: [1024]u8 = undefined;
         while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+            // ignore commented out lines
+            if (line.len > 0 and line[0] == '#') {
+                continue;
+            }
             // split into KEY and Value
             if (std.mem.indexOf(u8, line, "=")) |index| {
                 const key = line[0..index];
@@ -57,4 +61,5 @@ test "load an env file" {
     try testing.expectEqualStrings("1", expanded_env.get("VALUE1").?);
     try testing.expectEqualStrings("2", expanded_env.get("VALUE2").?);
     try testing.expectEqualStrings("3", expanded_env.get("VALUE3").?);
+    try testing.expectEqual(null, expanded_env.get("VALUE4"));
 }
