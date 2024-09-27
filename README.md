@@ -3,6 +3,18 @@ Load ENV vars from .env files on boot
 
 -- 
 
+On boot, calling `env.init(alloc, ".env")` will return an env that 
+includes values from the `.env` file
+
+Lines starting with `#` are treated as comments
+
+All other lines will take the form 
+
+```
+ENV_VAR_NAME=VALUE
+```
+
+Lines that do not have a `=` sign will be skipped
 
 ## Install
 
@@ -13,7 +25,7 @@ zig fetch --save git+https://github.com/zigster64/dotenv.zig#main
 Then add to your build.zig
 
 ```zig
-    const zts = b.dependency("dotenv", .{ dependency options here );
+    const dotenv = b.dependency("dotenv", .{ dependency options here );
     exe.root_module.addImport("dotenv", dotenv.module("dotenv"));
 ```
 
@@ -39,7 +51,7 @@ pub fn main() !void {
     defer gpa.deinit();
 
     // init the dotenv object - this will read the .env file at runtime
-    const env = try dotenv.init(allocator, ".env");
+    var env = try dotenv.init(allocator, ".env");
     defer env.deinit();
 
     // gen "Env" vars
