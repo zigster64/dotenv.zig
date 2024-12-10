@@ -25,7 +25,7 @@ zig fetch --save git+https://github.com/zigster64/dotenv.zig#main
 Then add to your build.zig
 
 ```zig
-    const dotenv = b.dependency("dotenv", .{ dependency options here );
+    const dotenv = b.dependency("dotenv", .{ dependency options here } );
     exe.root_module.addImport("dotenv", dotenv.module("dotenv"));
 ```
 
