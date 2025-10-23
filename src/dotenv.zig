@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
@@ -13,11 +14,10 @@ pub fn init(allocator: Allocator, filename: ?[]const u8) !Self {
         var file = std.fs.cwd().openFile(f, .{}) catch {
             return .{ .map = map };
         };
-
         defer file.close();
         var buf: [1024]u8 = undefined;
         var reader = file.reader(&buf);
-        while (reader.interface.takeDelimiterExclusive('\n')) |line| {
+        while (parse(&reader.interface, '\n')) |line| {
             // ignore commented out lines
             if (line.len > 0 and line[0] == '#') {
                 continue;
@@ -28,14 +28,20 @@ pub fn init(allocator: Allocator, filename: ?[]const u8) !Self {
                 const value = line[index + 1 ..];
                 try map.put(key, value);
             }
-        } else |err| switch (err) {
-            error.EndOfStream => {}, // normal termination if the file does not end with a line which contains a new line
-            else => return err,
         }
     }
     return .{
         .map = map,
     };
+}
+
+fn parse(r: *std.io.Reader, delimiter: u8) ?[]u8 {
+    // https://github.com/ziglang/zig/issues/25597#issuecomment-3410445340
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 15 and builtin.zig_version.patch == 1) {
+        return std.io.Reader.takeDelimiterExclusive(r, delimiter) catch null;
+    } else {
+        return std.io.Reader.takeDelimiter(r, delimiter) catch null;
+    }
 }
 
 pub fn deinit(self: *Self) void {
