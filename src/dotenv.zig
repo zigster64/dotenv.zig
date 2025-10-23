@@ -17,7 +17,8 @@ pub fn init(allocator: Allocator, filename: ?[]const u8) !Self {
         defer file.close();
         var buf: [1024]u8 = undefined;
         var reader = file.reader(&buf);
-        while (parse(&reader.interface, '\n')) |line| {
+        while (parse(&reader.interface, '\n')) |slice| {
+            const line = std.mem.trimEnd(u8, slice, "\r");
             // ignore commented out lines
             if (line.len > 0 and line[0] == '#') {
                 continue;
