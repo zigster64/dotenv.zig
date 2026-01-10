@@ -1,6 +1,9 @@
 # dotenv.zig
 Load ENV vars from .env files on boot 
 
+This "dev" branch is up to date with 
+0.16.0-dev.2040+c475f1fcd
+
 -- 
 
 On boot, calling `env.init(alloc, ".env")` will return an env that 
